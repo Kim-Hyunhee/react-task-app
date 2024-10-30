@@ -12,9 +12,15 @@ import {
 } from './BoardList.css';
 import { clsx } from 'clsx';
 import { GoSignOut } from 'react-icons/go';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+} from 'firebase/auth';
 import { app } from '../../firebase';
-import { setUser } from '../../store/slices/userSlice';
+import { removeUser, setUser } from '../../store/slices/userSlice';
+import { useAuth } from '../../hooks/useAuth';
 
 type TBoardListProps = {
   activeBoardId: string;
@@ -32,6 +38,8 @@ const BoardList: FC<TBoardListProps> = ({
 
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
+
+  const { isAuth } = useAuth();
 
   const handleClick = () => {
     setIsFormOpen(!isFormOpen);
@@ -53,6 +61,14 @@ const BoardList: FC<TBoardListProps> = ({
       .catch((error) => {
         console.error(error);
       });
+  };
+
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        dispatch(removeUser());
+      })
+      .catch((error) => console.error(error));
   };
 
   return (
@@ -85,9 +101,11 @@ const BoardList: FC<TBoardListProps> = ({
           <FiPlusCircle className={addButton} onClick={handleClick} />
         )}
 
-        <GoSignOut className={addButton} />
-
-        <FiLogIn className={addButton} onClick={handleLogin} />
+        {isAuth ? (
+          <GoSignOut className={addButton} onClick={handleSignOut} />
+        ) : (
+          <FiLogIn className={addButton} onClick={handleLogin} />
+        )}
       </div>
     </div>
   );
